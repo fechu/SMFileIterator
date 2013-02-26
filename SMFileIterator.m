@@ -8,6 +8,15 @@
 #import "SMFileIterator.h"
 
 @interface SMFileIterator ()
+/**
+ This method should be used to pass a path to the pathBlock. 
+ In this method all the regex checking is done.
+ */
+- (void)publishPath:(NSString *)path isFolder:(BOOL)folder;
+
+/**
+ Iterates over a folder
+*/
 - (void)iterateFolderAtPath:(NSString *)path;
 @end
 
@@ -15,6 +24,8 @@
 
 @synthesize pathBlock;
 @synthesize finishBlock;
+@synthesize pathRegex;
+@synthesize fileExtension;
 
 - (id)initWithPath:(NSString *)aPath
 {
@@ -33,6 +44,12 @@
 
 - (void)start
 {
+    
+    // Check if we have a path block
+    if (!self.pathBlock) {
+        [[NSException exceptionWithName:NSInvalidArgumentException reason:@"No pathBlock was set but iteration was started." userInfo:nil] raise];
+    }
+    
     // Start iterating
     BOOL isDirectory = false;
     if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDirectory]) {
@@ -43,7 +60,7 @@
         }
         else {
             // It's not a directory. So just call the block.
-            pathBlock(path, isDirectory);
+            [self publishPath:path isFolder:isDirectory];
         }
     }
     else {
@@ -57,10 +74,28 @@
     }
 }
 
+#pragma mark - Private Methods
+
+- (void)publishPath:(NSString *)aPath isFolder:(BOOL)folder
+{
+    // Check regex.
+    if (self.pathRegex) {
+        NSRange range = [self.pathRegex rangeOfFirstMatchInString:path options:0 range:NSMakeRange(0, path.length)];
+        if (range.location == NSNotFound) {
+            // path does not match regex.
+            return;
+        }
+        else {
+            // Call the block
+            [self publishPath:aPath isFolder:folder];
+        }
+    }
+}
+
 - (void)iterateFolderAtPath:(NSString *)aPath
 {
     // It's a folder so we report the folder.
-    pathBlock(aPath, true);
+    [self publishPath:aPath isFolder:true];
     
     NSError *error = nil;
     NSArray *folderContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:aPath error:&error];
@@ -80,10 +115,21 @@
             }
             else {
                 // Just execute the block and go on...
-                pathBlock(fullPath, false);
+                [self publishPath:fullPath isFolder:false];
             }
         }
     }
+}
+
+#pragma mark - Custom Setter
+
+- (void)setFileExtension:(NSString *)extension
+{
+    // Set the correct regex that matches the extension.
+    NSString *pattern = [NSString stringWithFormat:@"^.*\\.%@$", extension];
+    NSRegularExpression *exp = [NSRegularExpression regularExpressionWithPattern:pattern
+                                                                         options:NSRegularExpressionCaseInsensitive error:NULL];
+    self.pathRegex = exp;
 }
 
 @end

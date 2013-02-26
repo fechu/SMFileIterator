@@ -36,5 +36,25 @@ typedef void (^SMFileIteratorFinishBlock)(void);
  */
 @property(nonatomic, strong) SMFileIteratorFinishBlock finishBlock;
 
+/**
+ Regex to use for all paths before giving them to the pathBlock. 
+ Only paths that match this regex will be forwarded to the path block.
+ Default is nil.
+ */
+@property (nonatomic, strong) NSRegularExpression *pathRegex;
+
+/**
+ Set a file extension. Only pathes that end with this extension are returned to the pathBlock.
+ Example:
+    [iterator setFileExtension:@"html"];
+    
+    /test/help.html     TRUE
+    /test/info.php      FALSE
+    /test/infohtml      FALSE
+    /test/status.html   TRUE
+ 
+ This method only sets a REGEX matching the file extension.
+ */
+@property (nonatomic, strong) NSString *fileExtension;
 
 @end
