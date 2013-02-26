@@ -85,10 +85,9 @@
             // path does not match regex.
             return;
         }
-        else {
-            // Call the block
-            [self publishPath:aPath isFolder:folder];
-        }
+    } else {
+        // Call the block
+        self.pathBlock(aPath, folder);
     }
 }
 
