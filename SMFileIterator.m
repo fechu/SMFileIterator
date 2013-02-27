@@ -80,15 +80,15 @@
 {
     // Check regex.
     if (self.pathRegex) {
-        NSRange range = [self.pathRegex rangeOfFirstMatchInString:path options:0 range:NSMakeRange(0, path.length)];
+        NSRange range = [self.pathRegex rangeOfFirstMatchInString:aPath options:0 range:NSMakeRange(0, aPath.length)];
         if (range.location == NSNotFound) {
             // path does not match regex.
             return;
         }
-    } else {
-        // Call the block
-        self.pathBlock(aPath, folder);
     }
+    
+    // Call the block
+    self.pathBlock(aPath, folder);
 }
 
 - (void)iterateFolderAtPath:(NSString *)aPath
